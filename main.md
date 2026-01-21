@@ -2,13 +2,23 @@
 ## 3D-Heatmap-of-Object-Pose-Estimation-Estimation-Supplementary-Material
 
 This page supports the article "3D Heatmap for Object Pose Estimation" with the follwing:
+* 3D heatmaps views for the screwdriver and the rubber duck objects
 * 3D heatmaps blender files for LM-O dataset objects
+* Projection of 2D Heatmap onto 3D Object Model Algorithm
+* LLM zero-shot system prompt used for 2D heatmap explanation
+
+---
 
 ### Abstract
 
-Object pose estimation is crucial for applications such as industrial robotics, bin picking, and augmented-reality overlays, as it enables systems to determine the orientation and position of objects in three-dimensional space. However, accurately estimating pose remains challenging, particularly in complex, occlusion-rich scenes or under heavy occlusions. In this work, we build upon previous results by incorporating targeted architectural and training modifications that enhance performance, resulting in an improved pose estimation network. Our model was evaluated on the LM-O (LineMOD-Occluded) dataset, achieving a BOP benchmark score of 69.3\%, which aggregates multiple standard 6D pose metrics, with an inference time of 0.804~s per frame on a NVIDIA RTX 2060.
+We introduce a 3D heatmap visualization to explain and debug 6D object pose estimation. The method computes occlusion-based 2D sensitivity maps and projects them onto the object surface, producing object-space 3D heatmaps that reveal which parts drive each prediction and help diagnose failure modes and model interpretability. We also incorporate targeted architectural and training modifications to improve an efficient pose estimation network. On the LM-O (LineMOD-Occluded) dataset, our model achieves a 69.3\% BOP score with an inference time of 0.0804~s per object on an NVIDIA RTX 2060. Our 3D heatmap algorithm was also applied for comparison to SurfEmb-RGB, and the resulting interpretable, fast, and accurate pipeline is well-suited for safety-critical robotic cells and AR devices, where both high performance and explainability are essential.
 
-Additionally, we extend earlier model explainability strategies by generating occlusion-based 2D heatmaps and projecting them onto the object surface to produce 3D heatmaps. These visualizations highlight object components that influence each prediction, offering deeper insight into the model's decision-making process and promoting transparency in pose estimation. Our 3D heatmap algorithm was also applied for comparison to SurfEmb-RGB, and the resulting interpretable, fast, and accurate pipeline is well-suited for safety-critical robotic cells and AR devices, where both high performance and explainability are essential.
+---
+
+### 3D heatmaps views for the screwdriver and the rubber duck objects
+![Base Views](heatmap3d/base_views.png)
+
+---
 
 ### 3D Heatmaps
 * Blender file for Ape: [ape.blend](https://dsoldev.github.io/supmat/heatmap3d/ape.blend)
@@ -26,55 +36,34 @@ Additionally, we extend earlier model explainability strategies by generating oc
 
 ---
 
-## ICIP2023-6D-Pose-Estimation-Supplementary-Material
+### Projection of 2D Heatmap onto 3D Object Model Algorithm
+![Projection Algorithm](heatmap3d/algorithm.png)
 
-This page supports the article "Modeling and Interpreting 6-D Object Pose Estimation" submitted for ICIP 2023 with the follwing:
-* Iteractive version of Figure 3
-* $R_x$ plot that was removed from Figure 3 because of spcae restriction
-* The Pose_network results that was removed from the article
-* Figure 3 colored by $cos(r1)$ and $cos(r2)$
+---
 
-### Abstract
+### LLM zero-shot system prompt used for 2D heatmap explanation
 
-This work aims to estimate the 6-Degrees of Freedom Pose of an object using simple convolutional neural networks. The problem is that most methods require previous knowledge of the 3D model of the object of interest, which could be unobtainable. We mitigate the problem by simplifying the object’s 3D model to a single and generic primitive solid to create a model that could estimate the pose of unknown objects. Besides that, we study the interpretability of the neural network by using visualization techniques to understand how the network is splitting the high-dimension feature space to reach a Pose estimation.
+```python
+SYSTEM_TEMPLATE = """
+You are a computer-vision heatmap specialist.
 
-### Rotation Feature Plot
-* Cored by Type: [rotation_feature_type](https://dsoldev.github.io/supmat/rot_networks/moved_tetrahedron_ResNet50/type.html)
-* Cored by $R_x$: [rotation_feature_r1](https://dsoldev.github.io/supmat/rot_networks/moved_tetrahedron_ResNet50/r1.html)
-* Cored by $R_z$: [rotation_feature_r2](https://dsoldev.github.io/supmat/rot_networks/moved_tetrahedron_ResNet50/r2.html)
-* Cored by $cos(R_x)$: [rotation_feature_cos_r1](https://dsoldev.github.io/supmat/rot_networks/moved_tetrahedron_ResNet50/cos(r1).html)
-* Cored by $cos(R_z)$: [rotation_feature_cos_r2](https://dsoldev.github.io/supmat/rot_networks/moved_tetrahedron_ResNet50/cos(r2).html)
+The image you receive ALWAYS has:
+* Left side -> original photo
+* Right side -> the same photo with a JET heatmap overlay (red = hot, blue = cold)
+  at ~50 % transparency.
 
-### Pose Feature Plot
-#### Feature Layer
-* Cored by Object: [feature_layer_obj](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/object.html)
-* Cored by $R_x$: [feature_layer_roll](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/roll.html)
-* Cored by $R_y$: [feature_layer_pitch](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/pitch.html)
-* Cored by $R_z$: [feature_layer_yaw](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/yaw.html)
-* Cored by $t_x$: [feature_layer_tx](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/tx.html)
-* Cored by $t_y$: [feature_layer_ty](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/ty.html)
-* Cored by $t_z$: [feature_layer_tz](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/feature_layer/tz.html)
+Your task:
+1. Look ONLY at the right side (heatmap).
+2. Locate where the components named below are.
+3. Visually judge which components show hot colors (red).
+4. Return *only* a list with the name(s) of those components,
+   using exactly the names below:
 
-#### Rotation Branch Layer 1
-* Cored by Object: [rot_dense1_object](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense1/object)
-* Cored by $R_x$: [rot_dense1_roll](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense1/roll)
-* Cored by $R_y$: [rot_dense1_pitch](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense1/pitch)
-* Cored by $R_z$: [rot_dense1_yaw](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense1/yaw)
+{component_list}
 
-#### Rotation Branch Layer 2
-* Cored by Object: [rot_dense2_object](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense2/object)
-* Cored by $R_x$: [rot_dense2_roll](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense2/roll)
-* Cored by $R_y$: [rot_dense2_pitch](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense2/pitch)
-* Cored by $R_z$: [rot_dense2_yaw](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/rot_dense2/yaw)
+If the heat is evenly distributed and no component stands out,
+return an empty list: [].
+```
 
-#### Translation Branch Layer 1
-* Cored by Object: [t_dense1_object](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense1/object)
-* Cored by $t_x$: [t_dense1_tx](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense1/tx)
-* Cored by $t_y$: [t_dense1_ty](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense1/ty)
-* Cored by $t_z$: [t_dense1_tz](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense1/tz)
 
-#### Translation Branch Layer 2
-* Cored by Object: [t_dense2_object](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense2/object)
-* Cored by $t_x$: [t_dense2_tx](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense2/tx)
-* Cored by $t_y$: [t_dense2_ty](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense2/ty)
-* Cored by $t_z$: [t_dense2_tz](https://dsoldev.github.io/supmat/pose_networks/resnet50_combined_loss/t_dense2/tz)
+---
